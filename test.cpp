@@ -43,7 +43,7 @@ TEST(insert_test, insert_method)
 TEST(erase_test, erase)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   EXPECT_EQ(map.size(), 4);
 
@@ -57,7 +57,7 @@ TEST(erase_test, erase)
 TEST(erase_test, erase_range)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   EXPECT_EQ(map.erase(map.begin(), --map.end())->first, 4);
   EXPECT_EQ(map.size(), 1);
@@ -66,7 +66,7 @@ TEST(erase_test, erase_range)
 TEST(erase_test, erase_not_existing_value)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   EXPECT_FALSE(map.erase(100));
 }
@@ -74,7 +74,7 @@ TEST(erase_test, erase_not_existing_value)
 TEST(erase_test, clear)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   map.clear();
   EXPECT_TRUE(map.empty());
@@ -109,7 +109,7 @@ TEST(insert_test, insert_range_with_random_values)
 TEST(search_test, find)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   for (auto key : map | std::views::keys)
   {
@@ -122,7 +122,7 @@ TEST(search_test, find)
 TEST(search_test, at)
 {
   std::array<std::pair<int, int>, 4> ar{ std::pair{1, 1}, {2, 2}, {3, 3}, {4, 4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   for(auto key : map | std::views::keys)
   {
@@ -133,7 +133,7 @@ TEST(search_test, at)
 TEST(search_test, throwing_at)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   EXPECT_THROW(map.at(5), std::out_of_range);
   EXPECT_EQ(map.at(1), 1.1);
@@ -154,6 +154,7 @@ TEST(emplace_test, emplace)
   for(std::size_t j = 0; j < 10; j++)
   {
     EXPECT_NE(map.find(j), map.end());
+    EXPECT_EQ(*map.find(j)->second, j * 1.1);
   }
 }
 
@@ -172,7 +173,7 @@ TEST(constructors_test, initializer_list_constructor)
 TEST(constructors_test, copy_constructor)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map1(ar);
+  splay_tree<int, double> map1(ar.begin(), ar.end());
   splay_tree<int, double> map2(map1);
 
   auto map1_pairs = map1 | std::views::keys;
@@ -184,7 +185,7 @@ TEST(constructors_test, copy_constructor)
 TEST(constructors_test, move_constructor)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map1(ar);
+  splay_tree<int, double> map1(ar.begin(), ar.end());
   splay_tree<int, double> map2(std::move(map1));
 
   auto map1_pairs = map1 | std::views::keys;
@@ -207,7 +208,7 @@ TEST(constructors_test, begin_end_iterators)
 TEST(assignment_operator, copy_assignment)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map1(ar);
+  splay_tree<int, double> map1(ar.begin(), ar.end());
   splay_tree<int, double> map2;
 
   map2 = map1;
@@ -221,7 +222,7 @@ TEST(assignment_operator, copy_assignment)
 TEST(assignment_operator, move_assignment)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map1(ar);
+  splay_tree<int, double> map1(ar.begin(), ar.end());
   splay_tree<int, double> map2;
 
   map2 = std::move(map1);
@@ -237,8 +238,8 @@ TEST(tree_merging, merging_of_different_trees)
 {
   std::array<std::pair<int, double>, 4> ar1{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
   std::array<std::pair<int, double>, 4> ar2{ std::pair{5, 5.5}, {6, 6.6}, {7, 7.7}, {8, 8.8} };
-  splay_tree<int, double> map1(ar1);
-  splay_tree<int, double> map2(ar2);
+  splay_tree<int, double> map1(ar1.begin(), ar1.end());
+  splay_tree<int, double> map2(ar2.begin(), ar2.end());
 
   map1.merge(map2);
   EXPECT_TRUE(map2.empty());
@@ -253,8 +254,8 @@ TEST(tree_merging, merging_of_different_trees)
 TEST(tree_merging, merging_of_equal_trees)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map1(ar);
-  splay_tree<int, double> map2(ar);
+  splay_tree<int, double> map1(ar.begin(), ar.end());
+  splay_tree<int, double> map2(ar.begin(), ar.end());
 
   map1.merge(map2);
   EXPECT_TRUE(map2.empty());
@@ -296,7 +297,7 @@ TEST(tree_merging, merging_of_empty_tree_and_tree_with_nodes)
 TEST(iterators_test, bidirectional_iterating)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   auto it = map.begin();
   ++it; ++it; ++it;
@@ -308,7 +309,7 @@ TEST(iterators_test, bidirectional_iterating)
 TEST(iterators_test, const_iterator)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double> map(ar);
+  splay_tree<int, double> map(ar.begin(), ar.end());
 
   int j = 1;
 
@@ -322,7 +323,7 @@ TEST(iterators_test, const_iterator)
 TEST(custom_comparator_test, greater_comparator)
 {
   std::array<std::pair<int, double>, 4> ar{ std::pair{1, 1.1}, {2, 2.2}, {3, 3.3}, {4, 4.4} };
-  splay_tree<int, double, std::greater<>> map(ar);
+  splay_tree<int, double, std::greater<>> map(ar.begin(), ar.end());
 
   for(std::size_t j = 4; j > 1; j--)
   {
