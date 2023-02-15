@@ -124,12 +124,11 @@ public:
   {
   protected:
     friend class splay_tree<Key, Data, Comparator, Allocator>;
-    using iter_value_type = std::pair<const Key, Data>;
 
   public:
-    using value_type = iter_value_type;
-    using reference = iter_value_type&;
-    using pointer = iter_value_type*;
+    using value_type = std::pair<const Key, Data>;
+    using reference = value_type&;
+    using pointer = value_type*;
     using iterator_category = std::bidirectional_iterator_tag;
     using difference_type = std::ptrdiff_t;
 
@@ -224,54 +223,74 @@ public:
     }
   };
 
-  class const_iterator : public iterator
+  class const_iterator
   {
     friend class splay_tree<Key, Data, Comparator, Allocator>;
 
-  public:
-    using iterator::iterator;
-    using iterator::operator==;
-    using iterator::operator!=;
-    using typename iterator::value_type;
-    using typename iterator::reference;
-    using typename iterator::pointer;
-    using typename iterator::iterator_category;
-    using typename iterator::difference_type;
+  private:
+    iterator it_;
 
-    const reference operator*() const noexcept
+  public:
+    using value_type = const std::pair<const Key, Data>;
+    using reference = const value_type&;
+    using pointer = const value_type*;
+    using iterator_category = std::bidirectional_iterator_tag;
+    using difference_type = std::ptrdiff_t;
+
+    const_iterator() noexcept = default;
+    const_iterator(const const_iterator&) noexcept = default;
+    const_iterator(const_iterator&&) noexcept = default;
+    const_iterator& operator=(const const_iterator&) noexcept = default;
+    const_iterator& operator=(const_iterator&&) noexcept = default;
+    ~const_iterator() noexcept = default;
+
+    explicit const_iterator(tree_node* node) : it_{ node }
+    {}
+
+    reference operator*() const noexcept
     {
-      return this->node_->get_pair();
+      return it_.node_->get_pair();
     }
 
-    const pointer operator->() const noexcept
+    pointer operator->() const noexcept
     {
-      return &this->node_->get_pair();
+      return &it_.node_->get_pair();
     }
 
     const_iterator& operator++() noexcept
     {
-      iterator::operator++();
+      ++it_;
       return *this;
     }
 
     const_iterator operator++(int) noexcept
     {
       const_iterator temp = *this;
-      iterator::operator++();
+      ++it_;
       return temp;
     }
 
     const_iterator& operator--() noexcept
     {
-      iterator::operator--();
+      --it_;
       return *this;
     }
 
     const_iterator operator--(int) noexcept
     {
       const_iterator temp = *this;
-      iterator::operator--();
+      --it_;
       return temp;
+    }
+
+    bool operator==(const const_iterator& obj) const noexcept
+    {
+      return it_.node_ == obj.it_.node_;
+    }
+
+    bool operator!=(const const_iterator& obj) const noexcept
+    {
+      return it_.node_ != obj.it_.node_;
     }
   };
 
