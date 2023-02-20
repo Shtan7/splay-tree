@@ -71,16 +71,16 @@ private:
   {
     friend class splay_tree<Key, Data, Comparator, Allocator>;
 
-  protected:
+  private:
     tree_node* parent_;
     tree_node* left_;
     tree_node* right_;
 
   public:
-    tree_node(const tree_node&) = delete;
-    tree_node(tree_node&&) noexcept = delete;
-    tree_node& operator=(const tree_node&) = delete;
-    tree_node& operator=(tree_node&&) noexcept = delete;
+    tree_node(const tree_node&) = default;
+    tree_node(tree_node&&) noexcept = default;
+    tree_node& operator=(const tree_node&) = default;
+    tree_node& operator=(tree_node&&) noexcept = default;
     ~tree_node() noexcept = default;
 
     tree_node() noexcept : parent_{}, left_{}, right_{}
@@ -101,9 +101,9 @@ private:
 
   public:
     data_node(const data_node&) = delete;
-    data_node(data_node&&) noexcept = delete;
+    data_node(data_node&&) noexcept = default;
     data_node& operator=(const data_node&) = delete;
-    data_node& operator=(data_node&&) noexcept = delete;
+    data_node& operator=(data_node&&) noexcept = default;
     ~data_node() noexcept = default;
 
     data_node() noexcept : key_data_pair_{}
@@ -122,7 +122,6 @@ private:
 public:
   class iterator
   {
-  protected:
     friend class splay_tree<Key, Data, Comparator, Allocator>;
 
   public:
@@ -431,20 +430,6 @@ private:
     --tree_size_;
   }
 
-  void swap(splay_tree&& obj) noexcept
-  {
-    root_ = obj.root_;
-    begin_ = obj.begin_;
-    tree_size_ = obj.tree_size_;
-    obj.end_.parent_->right_ = &end_;
-    end_.parent_ = obj.end_.parent_;
-
-    obj.root_ = nullptr;
-    obj.begin_ = &obj.end_;
-    obj.tree_size_ = 0;
-    obj.end_.parent_ = nullptr;
-  }
-
   static tree_node* find_sub_tree_min(tree_node* obj) noexcept
   {
     tree_node* current_node = obj;
@@ -703,16 +688,15 @@ public:
     insert(begin, end);
   }
 
-  splay_tree(const splay_tree& obj, const Comparator& comp = Comparator{}, const Allocator& alloc = Allocator{})
-    : node_allocator_{ alloc }, comparator_{ comp }
+  splay_tree(const splay_tree& obj)
+    : node_allocator_{ obj.node_allocator_ }, comparator_{ obj.comparator_ }
   {
     insert(obj.begin(), obj.end());
   }
 
-  splay_tree(splay_tree&& obj, const Comparator& comp = Comparator{}, const Allocator& alloc = Allocator{}) noexcept
-    : node_allocator_{ alloc }, comparator_{ comp }
+  splay_tree(splay_tree&& obj) noexcept
   {
-    swap(std::move(obj));
+    swap(obj);
   }
 
   splay_tree& operator=(const splay_tree& obj)
@@ -722,8 +706,7 @@ public:
       return *this;
     }
 
-    clear();
-    insert(obj.begin(), obj.end());
+    splay_tree{ obj }.swap(*this);
 
     return *this;
   }
@@ -735,8 +718,7 @@ public:
       return *this;
     }
 
-    clear();
-    swap(std::move(obj));
+    swap(obj);
 
     return *this;
   }
@@ -812,6 +794,26 @@ public:
     obj.begin_ = &obj.end_;
     obj.root_ = nullptr;
     obj.tree_size_ = 0;
+  }
+
+  void swap(splay_tree& obj) noexcept
+  {
+    if (begin_ == &end_)
+    {
+      begin_ = &obj.end_;
+    }
+
+    if (obj.begin_ == &obj.end_)
+    {
+      obj.begin_ = &end_;
+    }
+
+    std::swap(node_allocator_, obj.node_allocator_);
+    std::swap(comparator_, obj.comparator_);
+    std::swap(end_, obj.end_);
+    std::swap(root_, obj.root_);
+    std::swap(begin_, obj.begin_);
+    std::swap(tree_size_, obj.tree_size_);
   }
 
   Data& operator[](const Key& key)
