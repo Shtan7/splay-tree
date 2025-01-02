@@ -293,6 +293,20 @@ public:
     }
   };
 
+  struct temp_pointer
+  {
+    data_node* ptr = {};
+    internal::node_allocator_t<Allocator, data_node>& node_allocator;
+
+    ~temp_pointer()
+    {
+	    if (ptr != nullptr)
+	    {
+        node_allocator.deallocate(ptr, 1);
+	    }
+    }
+  };
+
 private:
   internal::node_allocator_t<Allocator, data_node> node_allocator_;
   Comparator comparator_;
@@ -306,7 +320,10 @@ private:
   tree_node* allocate_and_construct_node(T&& data)
   {
     data_node* result = node_allocator_.allocate(1);
+    temp_pointer temp_ptr = { .ptr = result, .node_allocator = node_allocator_ };
+
     std::construct_at(result, std::forward<T>(data));
+    temp_ptr.ptr = {};
 
     return result;
   }
@@ -315,8 +332,11 @@ private:
   tree_node* allocate_and_construct_node_emplace(const Key& key, Args&&... args)
   {
     data_node* result = node_allocator_.allocate(1);
+    temp_pointer temp_ptr = { .ptr = result, .node_allocator = node_allocator_ };
+
     std::construct_at(std::addressof(result->get_pair().second), std::forward<Args>(args)...);
-    std::construct_at(std::addressof(result->get_pair().first), key);
+    std::construct_at(const_cast<Key*>(std::addressof(result->get_pair().first)), key);
+    temp_ptr.ptr = {};
 
     result->right_ = {};
     result->left_ = {};
